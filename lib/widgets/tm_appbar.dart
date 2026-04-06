@@ -27,20 +27,24 @@ class TmAppbar extends StatelessWidget implements PreferredSize {
             ),
             SizedBox(width: 10,),
 
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('${AuthController.userModel!.firstName}  ${AuthController.userModel!.lastName}',
-                style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                  color: Colors.white
-                ),
-                ),
-                Text(AuthController.userModel!.email,
-                style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                  color: Colors.white
-                ),
-                ),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('${AuthController.userModel!.firstName}  ${AuthController.userModel!.lastName}',
+                  style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                    color: Colors.white
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(AuthController.userModel!.email,
+                  style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                    color: Colors.white
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             )
           ],
         ),

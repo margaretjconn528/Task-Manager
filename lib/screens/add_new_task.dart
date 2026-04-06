@@ -38,7 +38,8 @@ class _AddNewTaskState extends State<AddNewTask> {
       
       // background widget ব্যবহার করা হয়েছে
       body: ScreenBackground(
-        child: Padding(
+        child: SingleChildScrollView(
+          child: Padding(
           // সব দিক থেকে padding দেওয়া হয়েছে
           padding: const EdgeInsets.all(20.0),
           
@@ -119,7 +120,8 @@ class _AddNewTaskState extends State<AddNewTask> {
               ],
             ),
           ),
-        )
+        ),
+        ),
       ),
     );
   }

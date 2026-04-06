@@ -132,7 +132,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       // custom appbar
       appBar: TmAppbar(),
       
-      body: Padding(
+      body: SingleChildScrollView(
+        child: Padding(
         padding: const EdgeInsets.all(30.0),
         
         child: Form(
@@ -294,6 +295,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }
