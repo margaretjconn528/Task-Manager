@@ -57,7 +57,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   // gallery থেকে image pick করার function
   Future<void> pickImage() async {
     final XFile? image =
-        await _imagePicker.pickImage(source: ImageSource.gallery, maxWidth: 512, maxHeight: 512);
+        await _imagePicker.pickImage(source: ImageSource.gallery, imageQuality: 25);
     
     // image select হলে assign করা হচ্ছে
     if (image != null) {
@@ -79,11 +79,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       "firstName": _firstNameController.text,
       "lastName": _lastNameController.text,
       "mobile": _mobileController.text,
+      "photo": "",
     };
-
-    if (_base64Image != null) {
-      requestBody['photo'] = _base64Image;
-    }
 
     // যদি password দেওয়া হয় তাহলে add করা হচ্ছে
     if (_passwordController.text.isNotEmpty) {
@@ -120,7 +117,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       );
 
       // local storage update
-      AuthController.updateUserData(model);
+      await AuthController.updateUserData(model);
       
       // Update UI
       setState(() {});
@@ -131,8 +128,11 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       );
     } else {
       // error message
+      final errorMessage = response.responseData != null && response.responseData is Map && response.responseData['data'] != null
+          ? response.responseData['data']
+          : 'Profile update failed! Image might be too large.';
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response.responseData['data']))
+        SnackBar(content: Text(errorMessage.toString()))
       );
     }
   }

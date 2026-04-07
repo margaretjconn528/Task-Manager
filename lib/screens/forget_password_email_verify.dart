@@ -34,84 +34,86 @@ class _ForgetPasswordEmailVerifyState extends State<ForgetPasswordEmailVerify> {
           // চারপাশে padding দেওয়া হয়েছে
           padding: const EdgeInsets.all(30.0),
           
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start, // left align
-            children: [
-              
-              // উপরের দিকে ফাঁকা জায়গা
-              SizedBox(
-                height: 150,
-              ),
-              
-              // title text
-              Text(
-                'Your email address',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              
-              // spacing
-              SizedBox(
-                height: 25,
-              ),
-              
-              // email input field
-              TextFormField(
-                decoration: InputDecoration(
-                  hintText: 'Email' // placeholder
-                ),
-              ),
-              
-              // spacing
-              SizedBox(height: 20,),
-              
-              // next button
-              FilledButton(
-                onPressed: () {
-                  // OTP verification screen এ navigate করা হচ্ছে
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context)=>ForgetPasswordOtpVerification()
-                    )
-                  );
-                },
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start, // left align
+              children: [
                 
-                // button icon
-                child: Icon(Icons.arrow_circle_right_outlined)
-              ),
-
-              // spacing
-              SizedBox(height: 35,),
-              
-              // নিচে login option দেখানো হচ্ছে
-              Center(
-                child: RichText(
-                  text: TextSpan(
-                    // main text
-                    text: " have an account? ",
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.w500
-                    ),
-                    
-                    children: [
-                      TextSpan(
-                        // clickable text
-                        text: 'Login',
-                        style: TextStyle(
-                          color: AppColors.Pcolor, // custom primary color
-                          fontWeight: FontWeight.bold
-                        ),
-                        
-                        // tap করলে function call হবে
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = _onTapSignUp
-                      )
-                    ]
-                  )
+                // উপরের দিকে ফাঁকা জায়গা
+                SizedBox(
+                  height: 150,
                 ),
-              )
-            ],
+                
+                // title text
+                Text(
+                  'Your email address',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                
+                // spacing
+                SizedBox(
+                  height: 25,
+                ),
+                
+                // email input field
+                TextFormField(
+                  decoration: InputDecoration(
+                    hintText: 'Email' // placeholder
+                  ),
+                ),
+                
+                // spacing
+                SizedBox(height: 20,),
+                
+                // next button
+                FilledButton(
+                  onPressed: () {
+                    // OTP verification screen এ navigate করা হচ্ছে
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context)=>ForgetPasswordOtpVerification()
+                      )
+                    );
+                  },
+                  
+                  // button icon
+                  child: Icon(Icons.arrow_circle_right_outlined)
+                ),
+
+                // spacing
+                SizedBox(height: 35,),
+                
+                // নিচে login option দেখানো হচ্ছে
+                Center(
+                  child: RichText(
+                    text: TextSpan(
+                      // main text
+                      text: " have an account? ",
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w500
+                      ),
+                      
+                      children: [
+                        TextSpan(
+                          // clickable text
+                          text: 'Login',
+                          style: TextStyle(
+                            color: AppColors.Pcolor, // custom primary color
+                            fontWeight: FontWeight.bold
+                          ),
+                          
+                          // tap করলে function call হবে
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = _onTapSignUp
+                        )
+                      ]
+                    )
+                  ),
+                )
+              ],
+            ),
           ),
         ),
       ),
