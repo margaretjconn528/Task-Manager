@@ -1,11 +1,10 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
+import 'package:provider/provider.dart';
+import 'package:task_manager/providers/forgot_password_provider.dart';
 import 'package:task_manager/screens/sign_up_screen.dart';
 import 'package:task_manager/utils/app_colors.dart';
-import 'package:task_manager/utils/urls.dart';
-import 'package:task_manager/data/services/api_caller.dart';
-import 'package:task_manager/data/models/api_response.dart';
 import 'package:task_manager/widgets/showSnackBar.dart';
 
 import '../widgets/screen_background.dart';
@@ -16,23 +15,22 @@ class ForgetPasswordOtpVerification extends StatefulWidget {
   const ForgetPasswordOtpVerification({super.key, required this.email});
 
   @override
-  State<ForgetPasswordOtpVerification> createState() => _ForgetPasswordOtpVerificationState();
+  State<ForgetPasswordOtpVerification> createState() =>
+      _ForgetPasswordOtpVerificationState();
 }
 
-class _ForgetPasswordOtpVerificationState extends State<ForgetPasswordOtpVerification> {
+class _ForgetPasswordOtpVerificationState
+    extends State<ForgetPasswordOtpVerification> {
   final TextEditingController _otpController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  bool _inProgress = false;
 
-  void _onTapSignUp(){
+  void _onTapSignUp() {
     Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context)=>SignUpScreen())
-    );
+        context, MaterialPageRoute(builder: (context) => SignUpScreen()));
   }
 
   Future<void> _verifyOtp() async {
-    if(!_formKey.currentState!.validate()){
+    if (!_formKey.currentState!.validate()) {
       return;
     }
 
@@ -41,25 +39,19 @@ class _ForgetPasswordOtpVerificationState extends State<ForgetPasswordOtpVerific
       return;
     }
 
-    setState(() {
-      _inProgress = true;
-    });
-
+    final forgotProvider = context.read<ForgotPasswordProvider>();
     String otp = _otpController.text;
-    ApiResponse response = await ApiCaller.getRequest(URL: Urls.RecoverVerifyOTP(widget.email, otp));
+    final response = await forgotProvider.verifyOtp(widget.email, otp);
 
-    setState(() {
-      _inProgress = false;
-    });
-
-    if(response.isSuccess && response.responseData['status'] == 'success') {
-      showSnackbar(context, response.responseData['message'] ?? 'OTP verified');
+    if (response.isSuccess &&
+        response.responseData['status'] == 'success') {
+      showSnackbar(
+          context, response.responseData['message'] ?? 'OTP verified');
       Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context)=>ForgetPasswordSetPassword(email: widget.email, otp: otp)
-        )
-      );
+          context,
+          MaterialPageRoute(
+              builder: (context) => ForgetPasswordSetPassword(
+                  email: widget.email, otp: otp)));
     } else {
       showSnackbar(context, 'OTP verification failed. Try again.');
     }
@@ -97,44 +89,43 @@ class _ForgetPasswordOtpVerificationState extends State<ForgetPasswordOtpVerific
                     keyboardType: TextInputType.number,
                     controller: _otpController,
                     pinTheme: PinTheme(
-                      shape: PinCodeFieldShape.box,
-                      borderRadius: BorderRadius.circular(7),
-                      fieldHeight: 50,
-                      fieldWidth: 40,
-                      activeFillColor: Colors.white,
-                      inactiveColor: Colors.grey.shade300,
-                      selectedColor: AppColors.Pcolor
-                    ),
+                        shape: PinCodeFieldShape.box,
+                        borderRadius: BorderRadius.circular(7),
+                        fieldHeight: 50,
+                        fieldWidth: 40,
+                        activeFillColor: Colors.white,
+                        inactiveColor: Colors.grey.shade300,
+                        selectedColor: AppColors.Pcolor),
                     backgroundColor: Colors.transparent,
                   ),
                   SizedBox(height: 20),
-                  _inProgress
-                    ? Center(child: CircularProgressIndicator())
-                    : FilledButton(
-                        onPressed: _verifyOtp,
-                        child: Icon(Icons.arrow_circle_right_outlined)
-                      ),
+                  Consumer<ForgotPasswordProvider>(
+                    builder: (context, provider, child) {
+                      if (provider.isLoading) {
+                        return Center(child: CircularProgressIndicator());
+                      }
+                      return FilledButton(
+                          onPressed: _verifyOtp,
+                          child: Icon(Icons.arrow_circle_right_outlined));
+                    },
+                  ),
                   SizedBox(height: 35),
                   Center(
                     child: RichText(
-                      text: TextSpan(
-                        text: " have an account? ",
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.w500
-                        ),
-                        children: [
-                          TextSpan(
-                            text: 'Sign in',
+                        text: TextSpan(
+                            text: " have an account? ",
                             style: TextStyle(
-                              color: AppColors.Pcolor,
-                              fontWeight: FontWeight.bold
-                            ),
-                            recognizer: TapGestureRecognizer()..onTap = _onTapSignUp
-                          )
-                        ]
-                      )
-                    ),
+                                color: Colors.black,
+                                fontWeight: FontWeight.w500),
+                            children: [
+                          TextSpan(
+                              text: 'Sign in',
+                              style: TextStyle(
+                                  color: AppColors.Pcolor,
+                                  fontWeight: FontWeight.bold),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = _onTapSignUp)
+                        ])),
                   )
                 ],
               ),
