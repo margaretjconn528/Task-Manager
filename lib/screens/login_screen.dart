@@ -108,11 +108,12 @@ class _LoginScreenState extends State<LoginScreen> {
           // padding দেওয়া হয়েছে
           padding: const EdgeInsets.all(20.0),
           
-          child: Form(
-            // form key assign
-            key: _formKey,
-            
-            child: Column(
+          child: SingleChildScrollView(
+            child: Form(
+              // form key assign
+              key: _formKey,
+              
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start, // left align
               children: [
                 

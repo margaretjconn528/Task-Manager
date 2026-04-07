@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:task_manager/Controller/auth_controller.dart';
 import '../screens/login_screen.dart';
@@ -21,10 +22,12 @@ class TmAppbar extends StatelessWidget implements PreferredSize {
           children: [
             CircleAvatar(
               radius:25,
-              backgroundImage: NetworkImage(
-                  profilePic
-
-              ),
+              backgroundImage: profilePic.startsWith('http')
+                  ? NetworkImage(profilePic) as ImageProvider
+                  : profilePic.isNotEmpty
+                      ? MemoryImage(base64Decode(profilePic.split(',').last)) as ImageProvider
+                      : null,
+              child: profilePic.isEmpty ? const Icon(Icons.person) : null,
             ),
             SizedBox(width: 10,),
 

@@ -89,6 +89,8 @@ class AuthController{
       
       // নতুন user data json করে save করা হচ্ছে
       await sharedPreferences.setString(_userModelKey, jsonEncode(model.toJson()));
+      
+      userModel = model;
     }
 
     // সব user data clear করার method (logout এর জন্য)

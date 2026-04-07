@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'dart:convert';
 import 'package:task_manager/Controller/auth_controller.dart';
 import 'package:task_manager/data/models/user_model.dart';
 import 'package:task_manager/widgets/tm_appbar.dart';
@@ -34,6 +35,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   
   // selected image রাখার variable
   XFile? _selectedImage;
+  String? _base64Image;
   
   // loading state
   bool isLoading = false;
@@ -55,11 +57,13 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   // gallery থেকে image pick করার function
   Future<void> pickImage() async {
     final XFile? image =
-        await _imagePicker.pickImage(source: ImageSource.gallery);
+        await _imagePicker.pickImage(source: ImageSource.gallery, maxWidth: 512, maxHeight: 512);
     
     // image select হলে assign করা হচ্ছে
     if (image != null) {
       _selectedImage = image;
+      List<int> imageBytes = await image.readAsBytes();
+      _base64Image = base64Encode(imageBytes);
       
       // UI refresh
       setState(() {});
@@ -76,6 +80,10 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       "lastName": _lastNameController.text,
       "mobile": _mobileController.text,
     };
+
+    if (_base64Image != null) {
+      requestBody['photo'] = _base64Image;
+    }
 
     // যদি password দেওয়া হয় তাহলে add করা হচ্ছে
     if (_passwordController.text.isNotEmpty) {
@@ -108,11 +116,14 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
         firstName: _firstNameController.text,
         lastName: _lastNameController.text,
         mobile: _mobileController.text,
-        photo: '', // ⚠️ image handle করা হয়নি
+        photo: _base64Image ?? AuthController.userModel!.photo,
       );
 
       // local storage update
       AuthController.updateUserData(model);
+      
+      // Update UI
+      setState(() {});
 
       // success message
       ScaffoldMessenger.of(context).showSnackBar(
