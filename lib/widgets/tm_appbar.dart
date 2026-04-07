@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:task_manager/Controller/auth_controller.dart';
+import '../screens/login_screen.dart';
 
 import '../screens/update_profile_screen.dart';
 
@@ -51,7 +52,22 @@ class TmAppbar extends StatelessWidget implements PreferredSize {
       ),
       
       actions: [
-        IconButton(onPressed: (){}, icon: Icon(Icons.logout,color: Colors.white,))
+        IconButton(
+          onPressed: () async {
+            await AuthController.cleanUserData();
+            if (context.mounted) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+                (route) => false,
+              );
+            }
+          },
+          icon: const Icon(
+            Icons.logout,
+            color: Colors.white,
+          ),
+        )
       ],
     );
   }

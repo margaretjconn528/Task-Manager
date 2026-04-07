@@ -92,11 +92,14 @@ class AuthController{
     }
 
     // সব user data clear করার method (logout এর জন্য)
-    static Future<void> cleanUserData(UserModel model) async {
+    static Future<void> cleanUserData() async {
       // shared preferences instance নেওয়া হচ্ছে
       SharedPreferences sharedPreferences =await SharedPreferences.getInstance();
       
       // সব data delete করা হচ্ছে
       await sharedPreferences.clear();
+
+      accessToken = null;
+      userModel = null;
     }
 }
