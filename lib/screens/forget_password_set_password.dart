@@ -3,23 +3,28 @@ import 'package:flutter/material.dart';
 import 'package:task_manager/screens/login_screen.dart';
 import 'package:task_manager/screens/sign_up_screen.dart';
 import 'package:task_manager/utils/app_colors.dart';
+import 'package:task_manager/utils/urls.dart';
+import 'package:task_manager/data/services/api_caller.dart';
+import 'package:task_manager/data/models/api_response.dart';
+import 'package:task_manager/widgets/showSnackBar.dart';
 
 import '../widgets/screen_background.dart';
-import 'forget_password_ptp_verification.dart';
-
 
 class ForgetPasswordSetPassword extends StatefulWidget {
-  // constructor
-  const ForgetPasswordSetPassword({super.key});
+  final String email;
+  final String otp;
+  const ForgetPasswordSetPassword({super.key, required this.email, required this.otp});
 
   @override
-  // state create করা হচ্ছে
   State<ForgetPasswordSetPassword> createState() => _ForgetPasswordSetPasswordState();
 }
 
 class _ForgetPasswordSetPasswordState extends State<ForgetPasswordSetPassword> {
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool _inProgress = false;
 
-  // SignUp screen এ যাওয়ার function (⚠️ নামটা misleading)
   void _onTapSignUp(){
     Navigator.push(
       context,
@@ -27,110 +32,140 @@ class _ForgetPasswordSetPasswordState extends State<ForgetPasswordSetPassword> {
     );
   }
 
+  Future<void> _resetPassword() async {
+    if(!_formKey.currentState!.validate()){
+      return;
+    }
+
+    if (_passwordController.text != _confirmPasswordController.text) {
+      showSnackbar(context, 'Passwords do not match');
+      return;
+    }
+
+    setState(() {
+      _inProgress = true;
+    });
+
+    Map<String, dynamic> body = {
+      "email": widget.email,
+      "OTP": widget.otp,
+      "password": _passwordController.text
+    };
+
+    ApiResponse response = await ApiCaller.PostRequest(
+      URL: Urls.RecoverResetPass,
+      body: body
+    );
+
+    setState(() {
+      _inProgress = false;
+    });
+
+    if(response.isSuccess && response.responseData['status'] == 'success') {
+      showSnackbar(context, response.responseData['message'] ?? 'Password reset successful');
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context)=>LoginScreen()),
+        (route) => false,
+      );
+    } else {
+      showSnackbar(context, 'Password reset failed. Try again.');
+    }
+  }
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // background সহ UI
       body: ScreenBackground(
         child: Padding(
-          // চারপাশে padding
           padding: const EdgeInsets.all(30.0),
-          
           child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start, // left align
-              children: [
-                
-                // উপরের দিকে space
-                SizedBox(
-                  height: 150,
-                ),
-                
-                // title text
-                Text(
-                  'Set Password',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                
-                SizedBox(height: 10,),
-                
-                // password rule text
-                Text(
-                  'Password should be more than 6 letters and combination of numbers',
-                  style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                    color: Colors.grey // grey color
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 150),
+                  Text(
+                    'Set Password',
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
-                ),
-                
-                SizedBox(
-                  height: 25,
-                ),
-                
-                // password input field
-                TextFormField(
-                  obscureText: true, // password hide থাকবে
-                  
-                  decoration: InputDecoration(
-                    hintText: 'Password'
+                  SizedBox(height: 10),
+                  Text(
+                    'Password should be more than 6 letters and combination of numbers',
+                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                      color: Colors.grey
+                    ),
                   ),
-                ),
-                
-                SizedBox(height: 10,),
-                
-                // confirm password input field
-                TextFormField(
-                  obscureText: true, // password hide
-                  
-                  decoration: InputDecoration(
-                    hintText: 'Conf Password'
+                  SizedBox(height: 25),
+                  TextFormField(
+                    controller: _passwordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      hintText: 'Password'
+                    ),
+                    validator: (value) {
+                      if(value == null || value.isEmpty){
+                        return 'Enter a password';
+                      }
+                      if(value.length < 6){
+                        return 'Password must be at least 6 characters';
+                      }
+                      return null;
+                    },
                   ),
-                ),
-                
-                SizedBox(height: 20,),
-                
-                // submit button
-                FilledButton(
-                  onPressed: () {
-                    // password set হওয়ার পর login screen এ redirect
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context)=>LoginScreen())
-                    );
-                  },
-                  
-                  // button icon
-                  child: Icon(Icons.arrow_circle_right_outlined)
-                ),
-
-                SizedBox(height: 35,),
-                
-                // নিচে login option
-                Center(
-                  child: RichText(
-                    text: TextSpan(
-                      text: " have an account? ",
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w500
+                  SizedBox(height: 10),
+                  TextFormField(
+                    controller: _confirmPasswordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      hintText: 'Conf Password'
+                    ),
+                    validator: (value) {
+                      if(value == null || value.isEmpty){
+                        return 'Confirm your password';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 20),
+                  _inProgress
+                    ? Center(child: CircularProgressIndicator())
+                    : FilledButton(
+                        onPressed: _resetPassword,
+                        child: Icon(Icons.arrow_circle_right_outlined)
                       ),
-                      
-                      children: [
-                        TextSpan(
-                          text: 'Login',
-                          style: TextStyle(
-                            color: AppColors.Pcolor,
-                            fontWeight: FontWeight.bold
-                          ),
-                          
-                          // tap করলে function call হবে
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = _onTapSignUp
-                        )
-                      ]
-                    )
-                  ),
-                )
-              ],
+                  SizedBox(height: 35),
+                  Center(
+                    child: RichText(
+                      text: TextSpan(
+                        text: " have an account? ",
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.w500
+                        ),
+                        children: [
+                          TextSpan(
+                            text: 'Login',
+                            style: TextStyle(
+                              color: AppColors.Pcolor,
+                              fontWeight: FontWeight.bold
+                            ),
+                            recognizer: TapGestureRecognizer()..onTap = _onTapSignUp
+                          )
+                        ]
+                      )
+                    ),
+                  )
+                ],
+              ),
             ),
           ),
         ),

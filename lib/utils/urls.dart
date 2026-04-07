@@ -8,4 +8,7 @@ class Urls{
   static String TaskByStatusURL(String status) => '$_baseUrl/listTaskByStatus/$status';
   static String DeleteTaskURL(String id) => '$_baseUrl/deleteTask/$id';
   static String ChangeStatusURL(String id, String status) => '$_baseUrl/updateTaskStatus/$id/$status';
+  static String RecoverVerifyEmail(String email) => '$_baseUrl/RecoverVerifyEmail/$email';
+  static String RecoverVerifyOTP(String email, String otp) => '$_baseUrl/RecoverVerifyOTP/$email/$otp';
+  static String RecoverResetPass = '$_baseUrl/RecoverResetPass';
 }

@@ -1,27 +1,29 @@
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:task_manager/screens/sign_up_screen.dart';
+import 'package:task_manager/utils/app_colors.dart';
+import 'package:task_manager/utils/urls.dart';
+import 'package:task_manager/data/services/api_caller.dart';
+import 'package:task_manager/data/models/api_response.dart';
+import 'package:task_manager/widgets/showSnackBar.dart';
 
-
-import '../utils/app_colors.dart';
 import '../widgets/screen_background.dart';
 import 'forget_password_set_password.dart';
 
-
 class ForgetPasswordOtpVerification extends StatefulWidget {
-  // constructor
-  const ForgetPasswordOtpVerification({super.key});
+  final String email;
+  const ForgetPasswordOtpVerification({super.key, required this.email});
 
   @override
-  // state create করা হচ্ছে
   State<ForgetPasswordOtpVerification> createState() => _ForgetPasswordOtpVerificationState();
 }
 
 class _ForgetPasswordOtpVerificationState extends State<ForgetPasswordOtpVerification> {
+  final TextEditingController _otpController = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool _inProgress = false;
 
-  // SignUp/Login screen এ যাওয়ার function
   void _onTapSignUp(){
     Navigator.push(
       context,
@@ -29,112 +31,113 @@ class _ForgetPasswordOtpVerificationState extends State<ForgetPasswordOtpVerific
     );
   }
 
+  Future<void> _verifyOtp() async {
+    if(!_formKey.currentState!.validate()){
+      return;
+    }
+
+    if (_otpController.text.length != 6) {
+      showSnackbar(context, 'Please enter a 6-digit OTP');
+      return;
+    }
+
+    setState(() {
+      _inProgress = true;
+    });
+
+    String otp = _otpController.text;
+    ApiResponse response = await ApiCaller.getRequest(URL: Urls.RecoverVerifyOTP(widget.email, otp));
+
+    setState(() {
+      _inProgress = false;
+    });
+
+    if(response.isSuccess && response.responseData['status'] == 'success') {
+      showSnackbar(context, response.responseData['message'] ?? 'OTP verified');
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context)=>ForgetPasswordSetPassword(email: widget.email, otp: otp)
+        )
+      );
+    } else {
+      showSnackbar(context, 'OTP verification failed. Try again.');
+    }
+  }
+
+  @override
+  void dispose() {
+    _otpController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // background সহ UI
       body: ScreenBackground(
         child: Padding(
-          // চারপাশে padding
           padding: const EdgeInsets.all(30.0),
-          
           child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start, // left align
-              children: [
-                
-                // উপরে space
-                SizedBox(
-                  height: 150,
-                ),
-                
-                // title text
-                Text(
-                  'PIN Verification',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                
-                // spacing
-                SizedBox(
-                  height: 25,
-                ),
-                
-                // PIN/OTP input field
-                PinCodeTextField(
-                  appContext: context, // context pass করা হচ্ছে
-                  
-                  length: 6, // 6 digit OTP
-                  
-                  obscureText: true, // input hide থাকবে
-                  
-                  animationType: AnimationType.fade, // animation
-                  
-                  keyboardType: TextInputType.number, // numeric keyboard
-                  
-                  // pin box design
-                  pinTheme: PinTheme(
-                    shape: PinCodeFieldShape.box, // box shape
-                    borderRadius: BorderRadius.circular(7), // border radius
-                    fieldHeight: 50, // height
-                    fieldWidth: 40, // width
-                    activeFillColor: Colors.white, // active color
-                    inactiveColor: Colors.grey.shade300, // inactive color
-                    selectedColor: AppColors.Pcolor // selected color
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 150),
+                  Text(
+                    'PIN Verification',
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
-                  
-                  // background transparent
-                  backgroundColor: Colors.transparent,
-                ),
-
-                // spacing
-                SizedBox(height: 20,),
-                
-                // next button
-                FilledButton(
-                  onPressed: () {
-                    // next screen (set password) এ যাওয়া হচ্ছে
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context)=>ForgetPasswordSetPassword()
-                      )
-                    );
-                  },
-                  
-                  // button icon
-                  child: Icon(Icons.arrow_circle_right_outlined)
-                ),
-
-                // spacing
-                SizedBox(height: 35,),
-                
-                // নিচে sign in option
-                Center(
-                  child: RichText(
-                    text: TextSpan(
-                      text: " have an account? ",
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w500
+                  SizedBox(height: 25),
+                  PinCodeTextField(
+                    appContext: context,
+                    length: 6,
+                    obscureText: true,
+                    animationType: AnimationType.fade,
+                    keyboardType: TextInputType.number,
+                    controller: _otpController,
+                    pinTheme: PinTheme(
+                      shape: PinCodeFieldShape.box,
+                      borderRadius: BorderRadius.circular(7),
+                      fieldHeight: 50,
+                      fieldWidth: 40,
+                      activeFillColor: Colors.white,
+                      inactiveColor: Colors.grey.shade300,
+                      selectedColor: AppColors.Pcolor
+                    ),
+                    backgroundColor: Colors.transparent,
+                  ),
+                  SizedBox(height: 20),
+                  _inProgress
+                    ? Center(child: CircularProgressIndicator())
+                    : FilledButton(
+                        onPressed: _verifyOtp,
+                        child: Icon(Icons.arrow_circle_right_outlined)
                       ),
-                      
-                      children: [
-                        TextSpan(
-                          text: 'Sign in',
-                          style: TextStyle(
-                            color: AppColors.Pcolor,
-                            fontWeight: FontWeight.bold
-                          ),
-                          
-                          // tap করলে function call হবে
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = _onTapSignUp
-                        )
-                      ]
-                    )
-                  ),
-                )
-              ],
+                  SizedBox(height: 35),
+                  Center(
+                    child: RichText(
+                      text: TextSpan(
+                        text: " have an account? ",
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.w500
+                        ),
+                        children: [
+                          TextSpan(
+                            text: 'Sign in',
+                            style: TextStyle(
+                              color: AppColors.Pcolor,
+                              fontWeight: FontWeight.bold
+                            ),
+                            recognizer: TapGestureRecognizer()..onTap = _onTapSignUp
+                          )
+                        ]
+                      )
+                    ),
+                  )
+                ],
+              ),
             ),
           ),
         ),
