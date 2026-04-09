@@ -3,102 +3,97 @@ import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/models/user_model.dart';
 
+/// A controller class responsible for managing user authentication state and persistence.
 class AuthController{
-    // access token সংরক্ষণের জন্য key
+    // Key for storing access token in SharedPreferences
     static String _accessTokenKey = 'token';
     
-    // user model সংরক্ষণের জন্য key
+    // Key for storing user data in SharedPreferences
     static String _userModelKey = 'user-data';
     
-    // logger instance তৈরি করা হয়েছে (debug/log দেখার জন্য)
+    // Logger instance for debugging and tracking authentication flow
     static final Logger _logger = Logger();
 
-    // access token রাখার জন্য variable (nullable)
+    // Variable to hold the current access token in memory
     static String ? accessToken;
     
-    // user model রাখার জন্য variable (nullable)
+    // Variable to hold the current user model in memory
     static UserModel ? userModel;
 
-    // user data এবং token save করার method
+    /// Saves user data and access token to both local storage and memory.
     static Future saveUserData(UserModel model,String token) async {
-        // shared preferences instance নেওয়া হচ্ছে
+        // Get SharedPreferences instance
         SharedPreferences sharedPreferences =await SharedPreferences.getInstance();
         
-        // token save করা হচ্ছে
+        // Store the access token
         await sharedPreferences.setString(_accessTokenKey, token);
         
-        // user model কে json করে save করা হচ্ছে
+        // Store the user model as a JSON string
         await sharedPreferences.setString(_userModelKey, jsonEncode(model.toJson()));
         
-        // memory তে token assign করা হচ্ছে
+        // Update variables in memory
         accessToken = token;
-        
-        // memory তে user model assign করা হচ্ছে
         userModel = model;
         
-        // token log করা হচ্ছে
+        // Log the stored data for verification
         _logger.i(accessToken);
-        
-        // user model log করা হচ্ছে
         _logger.i(userModel);
     }
 
-    // saved user data load করার method
+    /// Loads the saved user data and access token from local storage into memory.
     static Future getUserData() async {
-      // shared preferences instance নেওয়া হচ্ছে
+      // Get SharedPreferences instance
       SharedPreferences sharedPreferences =await SharedPreferences.getInstance();
       
-      // token নেওয়া হচ্ছে
+      // Retrieve the access token
       String ? token = sharedPreferences.getString(_accessTokenKey);
       
-      // যদি token থাকে
+      // If a token exists, load the user data
       if(token != null){
-        // memory তে token assign করা হচ্ছে
         accessToken = token;
         
-        // user data json নেওয়া হচ্ছে
+        // Retrieve the user data JSON string
         String ? userData = sharedPreferences.getString(_userModelKey);
         
-        // json decode করে user model বানানো হচ্ছে
+        // Decode the JSON and map it to the UserModel
         userModel = UserModel.fromJson(jsonDecode(userData!));
       }
       
-      // token log করা হচ্ছে
+      // Log the loaded data
       _logger.i(token);
-      
-      // user model log করা হচ্ছে
       _logger.i(userModel);
     }
 
-    // user login আছে কিনা check করার method
+    /// Checks if a user is currently logged in by verifying the presence of an access token.
     static Future<bool> isUserLoggeIn() async {
-      // shared preferences instance নেওয়া হচ্ছে
+      // Get SharedPreferences instance
       SharedPreferences sharedPreferences =await SharedPreferences.getInstance();
       
-      // token নেওয়া হচ্ছে
+      // Retrieve the access token
       String ? token = sharedPreferences.getString(_accessTokenKey);
       
-      // token থাকলে true return করবে, না থাকলে false
+      // Return true if a token exists, otherwise false
       return token !=null;
     }
 
-    // user data update করার method
+    /// Updates the user data in both memory and local storage.
     static Future<void> updateUserData(UserModel model) async {
-      // shared preferences instance নেওয়া হচ্ছে
+      // Get SharedPreferences instance
       SharedPreferences sharedPreferences =await SharedPreferences.getInstance();
       
-      // নতুন user data json করে save করা হচ্ছে
+      // Store the updated user data as a JSON string
       await sharedPreferences.setString(_userModelKey, jsonEncode(model.toJson()));
       
+      // Update memory
       userModel = model;
     }
 
-    // সব user data clear করার method (logout এর জন্য)
+    /// Clears all stored user data and resets the state in memory (e.g., during logout).
     static Future<void> cleanUserData() async {
-      // shared preferences instance নেওয়া হচ্ছে
+      // Get SharedPreferences instance
       SharedPreferences sharedPreferences =await SharedPreferences.getInstance();
       
-      // সব data delete করা হচ্ছে
+      // Clear all data from SharedPreferences
       await sharedPreferences.clear();
 
       accessToken = null;

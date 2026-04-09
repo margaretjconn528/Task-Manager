@@ -7,6 +7,13 @@ import 'package:task_manager/widgets/tm_appbar.dart';
 
 import 'main_nav_screen.dart';
 
+/// Screen for creating a new task.
+///
+/// Features:
+/// - Form validation
+/// - API integration via AddTaskProvider
+/// - Loading indicator
+/// - Navigation after successful task creation
 class AddNewTask extends StatefulWidget {
   const AddNewTask({super.key});
 
@@ -15,10 +22,20 @@ class AddNewTask extends StatefulWidget {
 }
 
 class _AddNewTaskState extends State<AddNewTask> {
-  TextEditingController titleController = TextEditingController();
-  TextEditingController descriptionController = TextEditingController();
+  /// Controller for task title input
+  final TextEditingController titleController = TextEditingController();
+
+  /// Controller for task description input
+  final TextEditingController descriptionController = TextEditingController();
+
+  /// Global form key for validation
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
+  /// Handles task creation logic
+  ///
+  /// - Calls provider API
+  /// - Shows success/error messages
+  /// - Navigates to main screen on success
   Future<void> _addNewTask() async {
     final addTaskProvider = context.read<AddTaskProvider>();
     final token = context.read<AuthProvider>().accessToken;
@@ -30,72 +47,106 @@ class _AddNewTaskState extends State<AddNewTask> {
     );
 
     if (response.isSuccess) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Task added..!')));
+      /// Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Task added..!')),
+      );
 
+      /// Navigate to main screen and clear navigation stack
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => MainNavScreen()),
+        MaterialPageRoute(builder: (context) => const MainNavScreen()),
         (predicate) => false,
       );
     } else {
+      /// Show error message from API
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response.responseData['data'])));
+        SnackBar(content: Text(response.responseData['data'])),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: TmAppbar(),
+      /// Custom AppBar with user info and logout
+      appBar: const TmAppbar(),
+
       body: ScreenBackground(
         child: SingleChildScrollView(
           child: Padding(
+            /// Page padding
             padding: const EdgeInsets.all(20.0),
+
             child: Form(
               key: _formKey,
+
               child: Column(
                 children: [
-                  SizedBox(height: 80),
+                  const SizedBox(height: 80),
+
+                  /// Screen title
                   Text(
                     'Add new Task',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
-                  SizedBox(height: 20),
+
+                  const SizedBox(height: 20),
+
+                  /// Title input field
                   TextFormField(
                     controller: titleController,
-                    decoration: InputDecoration(hintText: 'Title'),
+                    decoration: const InputDecoration(hintText: 'Title'),
+
+                    /// Validation for title field
                     validator: (String? value) {
                       if (value == null || value.isEmpty) {
-                        return 'please enter title';
+                        return 'Please enter title';
                       }
                       return null;
                     },
                   ),
-                  SizedBox(height: 20),
+
+                  const SizedBox(height: 20),
+
+                  /// Description input field
                   TextFormField(
                     controller: descriptionController,
                     maxLines: 6,
-                    decoration: InputDecoration(hintText: 'Description'),
+                    decoration:
+                        const InputDecoration(hintText: 'Description'),
+
+                    /// Validation for description field
                     validator: (String? value) {
                       if (value == null || value.isEmpty) {
-                        return 'please enter Description';
+                        return 'Please enter description';
                       }
                       return null;
                     },
                   ),
+
+                  /// Consumer listens to loading state
                   Consumer<AddTaskProvider>(
                     builder: (context, addTaskProvider, child) {
+                      /// Show loader while API call is in progress
                       if (addTaskProvider.isLoading) {
-                        return Center(child: CircularProgressIndicator());
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
                       }
+
+                      /// Submit button
                       return FilledButton(
-                          onPressed: () {
-                            if (_formKey.currentState!.validate()) {
-                              _addNewTask();
-                            }
-                          },
-                          child: Icon(Icons.arrow_circle_right_outlined));
+                        onPressed: () {
+                          /// Validate form before submission
+                          if (_formKey.currentState!.validate()) {
+                            _addNewTask();
+                          }
+                        },
+                        child: const Icon(
+                          Icons.arrow_circle_right_outlined,
+                        ),
+                      );
                     },
                   ),
                 ],
@@ -105,5 +156,13 @@ class _AddNewTaskState extends State<AddNewTask> {
         ),
       ),
     );
+  }
+
+  /// Dispose controllers to prevent memory leaks
+  @override
+  void dispose() {
+    titleController.dispose();
+    descriptionController.dispose();
+    super.dispose();
   }
 }

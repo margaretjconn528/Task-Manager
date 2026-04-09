@@ -5,9 +5,20 @@ import 'package:task_manager/providers/auth_provider.dart';
 import 'package:task_manager/providers/task_provider.dart';
 import 'package:task_manager/widgets/showSnackBar.dart';
 
+/// A reusable UI component that represents a single Task item.
+///
+/// Displays task details such as title, description, date, and status.
+/// Also provides actions for:
+/// - Deleting a task
+/// - Updating task status
 class TaskCard extends StatelessWidget {
+  /// Task data model containing all task-related information
   final TaskModel taskModel;
+
+  /// Background color of the status chip
   final Color cardColor;
+
+  /// Callback to refresh parent UI after any update (delete/status change)
   final VoidCallback onRefresh;
 
   const TaskCard({
@@ -17,6 +28,8 @@ class TaskCard extends StatelessWidget {
     required this.onRefresh,
   });
 
+  /// Deletes the current task using TaskProvider
+  /// and shows feedback via Snackbar
   Future<void> _deleteTask(BuildContext context) async {
     final taskProvider = context.read<TaskProvider>();
     final token = context.read<AuthProvider>().accessToken;
@@ -31,6 +44,8 @@ class TaskCard extends StatelessWidget {
     }
   }
 
+  /// Updates the task status (e.g., New, Progress, Completed, Cancelled)
+  /// and refreshes the UI on success
   Future<void> _changeStatus(BuildContext context, String status) async {
     final taskProvider = context.read<TaskProvider>();
     final token = context.read<AuthProvider>().accessToken;
@@ -40,62 +55,74 @@ class TaskCard extends StatelessWidget {
 
     if (success) {
       onRefresh();
+
+      /// Close the dialog after successful update
       Navigator.pop(context);
+
       showSnackbar(context, 'Task Status updated');
     } else {
       showSnackbar(context, 'Failed to update status');
     }
   }
 
+  /// Displays a dialog for selecting and updating task status
   void _showChangeStatusDialog(BuildContext context) {
     showDialog(
-        context: context,
-        builder: (dialogContext) {
-          return AlertDialog(
-            title: Text('Change Status'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  onTap: () => _changeStatus(context, 'New'),
-                  title: Text('New'),
-                  trailing: taskModel.status == 'New'
-                      ? Icon(Icons.done)
-                      : null,
-                ),
-                ListTile(
-                  onTap: () => _changeStatus(context, 'Progress'),
-                  title: Text('Progress'),
-                  trailing: taskModel.status == 'Progress'
-                      ? Icon(Icons.done)
-                      : null,
-                ),
-                ListTile(
-                  onTap: () => _changeStatus(context, 'Completed'),
-                  title: Text('Completed'),
-                  trailing: taskModel.status == 'Completed'
-                      ? Icon(Icons.done)
-                      : null,
-                ),
-                ListTile(
-                  onTap: () => _changeStatus(context, 'Cancelled'),
-                  title: Text('Cancelled'),
-                  trailing: taskModel.status == 'Cancelled'
-                      ? Icon(Icons.done)
-                      : null,
-                ),
-              ],
-            ),
-          );
-        });
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Change Status'),
+
+          /// List of available statuses
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              /// Each ListTile represents a status option
+              /// Shows a check icon if it is the current status
+              ListTile(
+                onTap: () => _changeStatus(context, 'New'),
+                title: const Text('New'),
+                trailing: taskModel.status == 'New'
+                    ? const Icon(Icons.done)
+                    : null,
+              ),
+              ListTile(
+                onTap: () => _changeStatus(context, 'Progress'),
+                title: const Text('Progress'),
+                trailing: taskModel.status == 'Progress'
+                    ? const Icon(Icons.done)
+                    : null,
+              ),
+              ListTile(
+                onTap: () => _changeStatus(context, 'Completed'),
+                title: const Text('Completed'),
+                trailing: taskModel.status == 'Completed'
+                    ? const Icon(Icons.done)
+                    : null,
+              ),
+              ListTile(
+                onTap: () => _changeStatus(context, 'Cancelled'),
+                title: const Text('Cancelled'),
+                trailing: taskModel.status == 'Cancelled'
+                    ? const Icon(Icons.done)
+                    : null,
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
+      /// Outer spacing around each task card
       padding: const EdgeInsets.all(8.0),
+
       child: Card(
         child: ListTile(
+          /// Task title with customized theme styling
           title: Text(
             taskModel.title,
             style: Theme.of(context)
@@ -103,28 +130,50 @@ class TaskCard extends StatelessWidget {
                 .titleLarge!
                 .copyWith(fontSize: 18),
           ),
+
+          /// Task details section
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              /// Task description
               Text(taskModel.description),
+
+              /// Task creation date
               Text('Date: ${taskModel.createdDate}'),
+
+              /// Status + Action buttons row
               Row(
                 children: [
+                  /// Status indicator chip
                   Chip(
                     label: Text(taskModel.status),
                     backgroundColor: cardColor,
-                    labelStyle: TextStyle(color: Colors.white),
+                    labelStyle: const TextStyle(color: Colors.white),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25)),
+                      borderRadius: BorderRadius.circular(25),
+                    ),
                   ),
-                  Spacer(),
+
+                  /// Pushes action buttons to the right
+                  const Spacer(),
+
+                  /// Edit status button
                   IconButton(
-                      onPressed: () => _showChangeStatusDialog(context),
-                      icon: Icon(Icons.edit_note_rounded,
-                          color: Colors.orange)),
+                    onPressed: () => _showChangeStatusDialog(context),
+                    icon: const Icon(
+                      Icons.edit_note_rounded,
+                      color: Colors.orange,
+                    ),
+                  ),
+
+                  /// Delete task button
                   IconButton(
-                      onPressed: () => _deleteTask(context),
-                      icon: Icon(Icons.delete, color: Colors.red)),
+                    onPressed: () => _deleteTask(context),
+                    icon: const Icon(
+                      Icons.delete,
+                      color: Colors.red,
+                    ),
+                  ),
                 ],
               )
             ],
