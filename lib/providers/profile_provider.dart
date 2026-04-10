@@ -9,17 +9,34 @@ import '../data/models/user_model.dart';
 import '../data/services/api_caller.dart';
 import '../utils/urls.dart';
 
+/// Provider class for managing user profile operations.
+/// 
+/// Handles image picking, profile updates, and fetching user details.
 class ProfileProvider extends ChangeNotifier {
+  /// Whether an ongoing profile operation is in progress.
   bool _isLoading = false;
+
+  /// The currently selected image file from the picker.
   XFile? _selectedImage;
+
+  /// The base64 encoded string of the processed profile image.
   String? _base64Image;
 
+  /// Returns true if an operation is currently loading.
   bool get isLoading => _isLoading;
+
+  /// Returns the selected image file.
   XFile? get selectedImage => _selectedImage;
+
+  /// Returns the base64 string of the selected image.
   String? get base64Image => _base64Image;
 
+  /// Internal instance of ImagePicker for selecting images.
   final ImagePicker _imagePicker = ImagePicker();
 
+  /// Launches the image picker and processes the selected image.
+  /// 
+  /// Updates [selectedImage] and generates a base64 encoded version in the background.
   Future<void> pickImage() async {
     final XFile? image = await _imagePicker.pickImage(
       source: ImageSource.gallery,
@@ -31,6 +48,7 @@ class ProfileProvider extends ChangeNotifier {
       notifyListeners();
 
       final Uint8List imageBytes = await image.readAsBytes();
+      // Offload image processing to a background isolate to keep UI responsive.
       _base64Image = await compute(_processImage, imageBytes);
 
       _isLoading = false;
@@ -38,6 +56,10 @@ class ProfileProvider extends ChangeNotifier {
     }
   }
 
+  /// Internal helper to resize and compress images before base64 encoding.
+  /// 
+  /// Decodes the raw bytes, resizes to a max of 600x600, and reduces quality
+  /// until the image size is under 50KB or minimum quality is reached.
   static String _processImage(Uint8List rawBytes) {
     img.Image? decoded = img.decodeImage(rawBytes);
     if (decoded == null) return base64Encode(rawBytes);
@@ -55,6 +77,10 @@ class ProfileProvider extends ChangeNotifier {
     return base64Encode(compressed);
   }
 
+  /// Updates the user's profile information via the API.
+  /// 
+  /// Takes user details and sends them to the server. Includes the selected image
+  /// if one has been picked.
   Future<ApiResponse> updateProfile({
     required String email,
     required String firstName,
@@ -90,6 +116,9 @@ class ProfileProvider extends ChangeNotifier {
     return response;
   }
 
+  /// Fetches the current user's profile details from the server.
+  /// 
+  /// Returns a [UserModel] if successful, or null otherwise.
   Future<UserModel?> fetchProfileDetails(String? token) async {
     final ApiResponse response = await ApiCaller.getRequest(
       URL: Urls.ProfileDetailsURL,
@@ -105,6 +134,7 @@ class ProfileProvider extends ChangeNotifier {
     return null;
   }
 
+  /// Resets the selected image and base64 cache.
   void clearSelectedImage() {
     _selectedImage = null;
     _base64Image = null;
