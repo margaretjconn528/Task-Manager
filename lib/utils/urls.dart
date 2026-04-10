@@ -1,6 +1,5 @@
 class Urls {
-  //static String _baseUrl = 'https://task.teamrabbil.com/api/v1';
-
+  
   static String _baseUrl = 'http://35.73.30.144:2005/api/v1';
 
   static String SignUpURL = '$_baseUrl/registration';
